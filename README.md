@@ -18,7 +18,7 @@ SIC-JS (Semantic Integrity Control — JSON State) is a protocol that allows AI 
 | `state` | is | What is happening now |
 | `relation` | is | Who is being spoken to |
 | `event` | was | What triggered this moment |
-| `intent` | ought | What should happen next |
+| `intent` | is | Why this action is being taken |
 | `task` | ought | What must be delivered (v3.0) |
 
 ### Why?

@@ -42,4 +42,4 @@ venv.bak/
 Thumbs.db
 
 # SIC-JS specific
-*.sic.json
+# repo_manifest.sic.json is tracked intentionally
