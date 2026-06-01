@@ -1,0 +1,21 @@
+{
+  "sic_version": "3.0",
+  "task": {
+    "id": "A-1",
+    "title": "Invalid status test",
+    "deliverable": "Should be rejected due to invalid status",
+    "status": "done",
+    "created_round": 1,
+    "owner": null,
+    "priority": null
+  },
+  "round": 1,
+  "entity": { "name": "test", "model": "test" },
+  "state": {
+    "context": "Testing invalid status rejection",
+    "current_action": "should fail"
+  },
+  "relation": { "user": "安安" },
+  "event": null,
+  "intent": null
+}

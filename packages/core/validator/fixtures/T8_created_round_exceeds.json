@@ -1,0 +1,21 @@
+{
+  "sic_version": "3.0",
+  "task": {
+    "id": "A-1",
+    "title": "Created round exceeds current round",
+    "deliverable": "Should be rejected: created_round > round",
+    "status": "pending",
+    "created_round": 10,
+    "owner": null,
+    "priority": null
+  },
+  "round": 5,
+  "entity": { "name": "test", "model": "test" },
+  "state": {
+    "context": "Testing created_round > round rejection",
+    "current_action": "should fail"
+  },
+  "relation": { "user": "安安" },
+  "event": null,
+  "intent": null
+}

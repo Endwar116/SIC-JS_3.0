@@ -1,0 +1,21 @@
+{
+  "sic_version": "3.0",
+  "task": {
+    "id": "FS-B-1",
+    "title": "Prefixed task ID format test",
+    "deliverable": "Validate that FS-B-1 format passes regex",
+    "status": "pending",
+    "created_round": 1,
+    "owner": "咩咩",
+    "priority": "P0"
+  },
+  "round": 1,
+  "entity": { "name": "咩咩", "model": "Manus" },
+  "state": {
+    "context": "Testing prefixed task ID",
+    "current_action": "validating FS-B-1 format"
+  },
+  "relation": { "user": "安安" },
+  "event": null,
+  "intent": null
+}

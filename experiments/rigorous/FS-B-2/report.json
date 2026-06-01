@@ -1,0 +1,26 @@
+{
+  "experiment": "FS-B-2-rigorous",
+  "sequential": {
+    "count": 1000,
+    "p50_ms": 0.097,
+    "p95_ms": 0.123,
+    "p99_ms": 0.192,
+    "mean_ms": 0.102,
+    "stdev_ms": 0.024,
+    "cv": 0.236,
+    "p99_pass": true
+  },
+  "concurrent": {
+    "count": 100,
+    "p50_ms": 1.097,
+    "p95_ms": 209.362,
+    "p99_ms": 512.819,
+    "p99_pass": false
+  },
+  "chaos": {
+    "disconnections": 50,
+    "server_survived": true,
+    "post_chaos_ttfb_ms": 0.441
+  },
+  "all_pass": false
+}

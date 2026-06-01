@@ -1,0 +1,19 @@
+{
+  "sic_version": "2.0",
+  "round": 5,
+  "entity": { "name": "德德", "model": "Claude" },
+  "state": {
+    "context": "v2.0 record without task field",
+    "current_action": "testing backward compatibility"
+  },
+  "relation": { "user": "安安" },
+  "event": {
+    "timestamp": "2026-06-01T00:00:00Z",
+    "description": "Test v2.0 backward compatibility",
+    "trigger": "test"
+  },
+  "intent": {
+    "user_intent": "test",
+    "system_intent": "validate v2.0 compat"
+  }
+}

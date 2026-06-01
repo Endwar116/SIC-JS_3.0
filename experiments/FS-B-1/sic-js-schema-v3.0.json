@@ -1,0 +1,239 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sic-sit.onrender.com/schemas/sic-js-v3.0.json",
+  "title": "SIC-JS v3.0 Schema",
+  "description": "SIC-JS Semantic Integrity Control JSON Schema v3.0. Forward-compatible with v2.0 (records without task remain valid). Ref: SICJS_30_技術原始記載檔_完整自足_File_2026_5_29.md §1.7",
+  "type": "object",
+
+  "required": ["sic_version", "round", "entity", "state", "relation"],
+
+  "additionalProperties": false,
+
+  "properties": {
+
+    "sic_version": {
+      "type": "string",
+      "enum": ["2.0", "3.0"],
+      "description": "Protocol version. Must be '3.0' when task field is present."
+    },
+
+    "task": {
+      "description": "Persistent Goal Primitive (v3.0). Optional at top level. If present, sic_version MUST be '3.0'.",
+      "type": "object",
+      "required": ["id", "title", "deliverable", "status", "created_round"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^([A-Z]+-)?[A-Z]{1,2}-[1-9][0-9]{0,2}$",
+          "description": "Series-Serial ID. Without prefix: A-1, ZZ-999. With prefix: DD-A-1, XIED-P-3. Immutable once assigned. OPEN-6/7: prefix registries deferred to Foundation."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable task title."
+        },
+        "deliverable": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Objective completion criterion. MUST be non-empty. Sole arbiter of completed status."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in_progress", "completed", "dismissed", "archived"],
+          "description": "FROZEN closed set. completed/archived/dismissed require 安安 ruling per PTGR C4. AGI cannot self-authorize status change."
+        },
+        "created_round": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Round when this task was created. Immutable. Must be ≤ round (cross-field: enforced by validator code, not JSON Schema)."
+        },
+        "owner": {
+          "type": ["string", "null"],
+          "description": "Responsible agent (e.g. 德德, 扣德). Nullable."
+        },
+        "priority": {
+          "type": ["string", "null"],
+          "enum": ["P0", "P1", "P2", null],
+          "description": "Task priority. Defaults to P2 if omitted."
+        },
+        "time_horizon": {
+          "type": ["string", "null"],
+          "enum": ["short", "medium", "long", null],
+          "description": "Estimated time horizon."
+        }
+      }
+    },
+
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Global round counter. Monotonically increasing. Never decrements, even when event is null."
+    },
+
+    "entity": {
+      "type": "object",
+      "required": ["name", "model"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Agent name (e.g. 德德, 無限先生)."
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "description": "AI self-reported model label (Claude/GPT/Gemini). Self-reported, NOT verified identity. OPEN-6/7: verification deferred to node prefix registration."
+        },
+        "origin": {
+          "type": ["string", "null"],
+          "description": "Session or handoff origin description. Nullable."
+        },
+        "created_at": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 datetime string or null."
+        }
+      }
+    },
+
+    "state": {
+      "type": "object",
+      "required": ["context", "current_action"],
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Semantic context of this round."
+        },
+        "current_action": {
+          "type": ["string", "null"],
+          "description": "What the agent is doing. Null = semantic_rupture (forced termination, session death). WARN only, not REJECT. Do NOT substitute a fake string for null."
+        },
+        "pending": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Unresolved items carried forward."
+        },
+        "tone": {
+          "type": "string",
+          "description": "Communicative register. Common values: active, audit, handoff, shutdown."
+        }
+      }
+    },
+
+    "relation": {
+      "type": "object",
+      "required": ["user"],
+      "additionalProperties": false,
+      "properties": {
+        "user": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Primary human collaborator (e.g. 安安)."
+        },
+        "anchor_memory": {
+          "type": ["string", "null"],
+          "description": "Key facts, decisions, or state anchors for this session. Nullable."
+        },
+        "linked_entities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Other IMCC agents referenced in this round."
+        },
+        "upstream": {
+          "type": ["string", "null"],
+          "description": "SHA256[:16] hex of previous canonical SIC-JS record. Pattern: 16 hex chars or null. OPEN-9: file-mode upstream (toolkit dialect) deferred to Foundation.",
+          "pattern": "^[a-f0-9]{16}$"
+        }
+      }
+    },
+
+    "event": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["timestamp", "description", "trigger"],
+          "additionalProperties": false,
+          "properties": {
+            "timestamp": {
+              "type": "string",
+              "description": "ISO 8601 datetime string."
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "description": "What happened. Use [RECONSTRUCTED: pre-task-era, session=N] for historical reconstruction."
+            },
+            "trigger": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Machine-readable trigger identifier."
+            }
+          }
+        }
+      ],
+      "description": "Dynamic event primitive. null = confirmed no event this round. {description:'unknown'} = Fail-Closed (event sensed, content unknown)."
+    },
+
+    "intent": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["user_intent", "system_intent"],
+          "additionalProperties": false,
+          "properties": {
+            "user_intent": {
+              "type": "string",
+              "description": "What the human wants in this round."
+            },
+            "system_intent": {
+              "type": "string",
+              "description": "What the agent is trying to accomplish."
+            },
+            "core_question": {
+              "type": ["string", "null"],
+              "description": "The most important open question requiring resolution. Nullable."
+            }
+          }
+        }
+      ],
+      "description": "Dynamic intent primitive. Nullable."
+    }
+  },
+
+  "if": {
+    "properties": {
+      "task": { "type": "object" }
+    },
+    "required": ["task"]
+  },
+  "then": {
+    "properties": {
+      "sic_version": { "const": "3.0" }
+    }
+  },
+
+  "x-validator-notes": {
+    "cross_field_constraints": [
+      "task.created_round MUST be <= round (enforce in validator code)",
+      "task.id MUST be unique within a persistent layer (enforce in validator code)",
+      "current_action null → emit WARN with semantic_rupture:true (not REJECT)"
+    ],
+    "forward_compatibility": [
+      "sic_version '2.0' without task → VALID in v3.0 validator",
+      "sic_version '3.0' without task → VALID (system audit/action round)",
+      "sic_version '2.0' with task → REJECT"
+    ],
+    "open_items": [
+      "OPEN-6: Foundation prefix registry (prefix assignment governance)",
+      "OPEN-7: International AGI Node prefix registry",
+      "OPEN-8: SIC-JS 3.0 official repo (required before release)",
+      "OPEN-9: upstream file-mode rules + dual hash (deferred to Foundation)"
+    ],
+    "design_direction": "Four-layer governance: Core/Canonical | Toolkit/Profiles | Registry/Metadata | Ledger/PTGR. This schema is Core/Canonical layer only."
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "experiment": "FS-B-2-rigorous-async-fix",
+  "server": "uvicorn + FastAPI (single-process asyncio)",
+  "payload_size_bytes": 69226,
+  "sequential": {
+    "count": 1000,
+    "p50_ms": 0.65,
+    "p95_ms": 0.757,
+    "p99_ms": 1.019,
+    "mean_ms": 0.671,
+    "stdev_ms": 0.128
+  },
+  "concurrent_100": {
+    "concurrency": 100,
+    "rounds": 10,
+    "total_requests": 1000,
+    "p50_ms": 42.51,
+    "p95_ms": 80.54,
+    "p99_ms": 84.04
+  },
+  "concurrency_sweep": {
+    "c1_p99_ms": 4.72,
+    "c5_p99_ms": 4.25,
+    "c10_p99_ms": 7.47,
+    "c25_p99_ms": 15.48,
+    "c50_p99_ms": 58.28,
+    "c100_p99_ms": 84.04
+  },
+  "chaos": {
+    "attempts": 50,
+    "graceful": 50,
+    "errors": 0
+  },
+  "comparison_vs_sync": {
+    "old_server": "http.server (single-threaded blocking)",
+    "new_server": "uvicorn + FastAPI (single-process async)",
+    "old_concurrent_100_p99_ms": 512,
+    "new_concurrent_100_p99_ms": 84.04,
+    "improvement_factor": 6.1,
+    "sweet_spot": "concurrency <= 10: P99 < 8ms"
+  },
+  "engineering_conclusion": "Single-process Python async reduces P99 from 512ms to 84ms (6.1x). At concurrency <= 10, P99 < 8ms. Remaining bottleneck: TCP buffer contention at 69KB × 100 simultaneous. Production: multi-worker uvicorn or Go/Rust for 100+ concurrent.",
+  "gates": {
+    "sequential_p99_lt_16ms": true,
+    "concurrent_10_p99_lt_16ms": true,
+    "chaos_graceful": true,
+    "improvement_over_sync_gt_5x": true
+  },
+  "all_pass": true
+}

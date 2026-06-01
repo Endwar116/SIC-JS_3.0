@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SIC-JS v3.0 Streaming Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8f9fa; padding: 24px; }
+    h1 { margin-bottom: 16px; color: #1a1a2e; }
+    .status-bar { background: #e8eaf6; padding: 8px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9em; }
+    #task-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  </style>
+</head>
+<body>
+  <h1>SIC-JS v3.0 Streaming Dashboard</h1>
+  <div class="status-bar">
+    <sic-state field="connection">Connecting...</sic-state>
+    <sic-entity name="Server" model="uvicorn+FastAPI"></sic-entity>
+  </div>
+  <div id="task-container"></div>
+
+  <script src="../../packages/developer-sdk/components.js"></script>
+  <script>
+    const container = document.getElementById('task-container');
+    const connState = document.querySelector('sic-state');
+
+    async function connectStream() {
+      try {
+        const res = await fetch('/stream');
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        connState.updateValue('Connected');
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+              const record = JSON.parse(line);
+              renderRecord(record);
+            } catch (e) {
+              console.warn('Invalid JSON line:', line);
+            }
+          }
+        }
+      } catch (err) {
+        connState.updateValue('Error: ' + err.message);
+        setTimeout(connectStream, 3000);
+      }
+    }
+
+    function renderRecord(record) {
+      if (!record.task) return;
+
+      let card = container.querySelector(`sic-task[data-sic-id="${record.task.id}"]`);
+      if (!card) {
+        card = document.createElement('sic-task');
+        card.innerHTML = '<span slot="title"></span><span slot="action"></span>';
+        container.appendChild(card);
+      }
+      card.updateFromRecord(record);
+    }
+
+    connectStream();
+  </script>
+</body>
+</html>

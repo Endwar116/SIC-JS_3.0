@@ -1,0 +1,28 @@
+{
+  "sic_version": "3.0",
+  "task": {
+    "id": "FS-B-1",
+    "title": "sic-js-validator-cli 實作",
+    "deliverable": "CLI tool that validates SIC-JS records",
+    "status": "in_progress",
+    "created_round": 1,
+    "owner": "咩咩",
+    "priority": "P0"
+  },
+  "round": 5,
+  "entity": { "name": "咩咩", "model": "Manus" },
+  "state": {
+    "context": "Building validator CLI",
+    "current_action": "writing test fixtures"
+  },
+  "relation": { "user": "安安" },
+  "event": {
+    "timestamp": "2026-06-01T06:00:00Z",
+    "description": "Test valid v3.0 record with task",
+    "trigger": "test"
+  },
+  "intent": {
+    "user_intent": "validate schema",
+    "system_intent": "ensure v3.0 compliance"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "experiment": "FS-B-2",
+  "ttfb_ms": 0.604,
+  "ttfb_pass": true,
+  "rounds_received": 100,
+  "rounds_pass": true,
+  "jfi": 1.0,
+  "jfi_pass": true,
+  "all_pass": true
+}

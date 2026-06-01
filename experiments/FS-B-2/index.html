@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>SIC-JS NDJSON Streaming Client</title>
+<style>
+body{font-family:monospace;background:#111;color:#0f0;padding:1em}
+#log{height:70vh;overflow-y:auto;border:1px solid #0f0;padding:.5em}
+.round{margin:.2em 0;opacity:0;animation:fadein .2s forwards}
+@keyframes fadein{to{opacity:1}}
+#stats{margin-top:1em;color:#ff0}
+</style>
+</head>
+<body>
+<h2>SIC-JS v3.0 NDJSON Streaming Client</h2>
+<div id="stats">Waiting for stream...</div>
+<div id="log"></div>
+<script>
+const log=document.getElementById('log'),stats=document.getElementById('stats');
+let count=0,t0=performance.now(),ttfb=null,jankFrames=0,totalFrames=0;
+const raf=()=>{totalFrames++;requestAnimationFrame(raf)};requestAnimationFrame(raf);
+fetch('/stream').then(r=>{
+  ttfb=performance.now()-t0;
+  const reader=r.body.getReader(),dec=new TextDecoder();let buf='';
+  function pump(){return reader.read().then(({done,value})=>{
+    if(done){stats.textContent=`Done! Rounds:${count} TTFB:${ttfb.toFixed(2)}ms JFI:${((totalFrames-jankFrames)/totalFrames).toFixed(4)}`;return}
+    buf+=dec.decode(value,{stream:true});
+    const lines=buf.split('\n');buf=lines.pop();
+    for(const l of lines){if(!l.trim())continue;try{
+      const r=JSON.parse(l),el=document.createElement('div');
+      el.className='round';el.textContent=`[R${r.round}] ${r.state.current_action} | status:${r.task?.status||'n/a'}`;
+      log.appendChild(el);log.scrollTop=log.scrollHeight;count++;
+      stats.textContent=`Rounds:${count} TTFB:${ttfb.toFixed(2)}ms`;
+    }catch(e){}}
+    return pump()
+  })}
+  pump()
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "experiment": "FS-B-4",
+  "fetch_ms": 0.503,
+  "parse_ms": 0.394,
+  "dom_ms": 10.0,
+  "ttr_estimate_ms": 10.896,
+  "ttr_pass": true,
+  "html_valid": true,
+  "records_count": 100,
+  "all_pass": true
+}

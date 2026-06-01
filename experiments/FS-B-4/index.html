@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>SIC-JS Web Components Dashboard — EXP FS-B-4</title>
+<style>
+:root{--bg:#0d1117;--fg:#c9d1d9;--accent:#58a6ff;--success:#3fb950;--warn:#d29922;--fail:#f85149;--border:#30363d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--fg);padding:1.5em}
+h1{color:var(--accent);margin-bottom:1em;font-size:1.4em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1em}
+sic-task-card{display:block;border:1px solid var(--border);border-radius:8px;padding:1em;transition:border-color .15s}
+sic-task-card:hover{border-color:var(--accent)}
+sic-task-card .id{font-weight:700;color:var(--accent);font-size:.85em}
+sic-task-card .title{font-size:1.1em;margin:.4em 0}
+sic-task-card .status{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75em;font-weight:600}
+sic-task-card .status[data-status="pending"]{background:#d2992233;color:var(--warn)}
+sic-task-card .status[data-status="in_progress"]{background:#58a6ff33;color:var(--accent)}
+sic-task-card .status[data-status="completed"]{background:#3fb95033;color:var(--success)}
+sic-task-card .status[data-status="dismissed"]{background:#f8514933;color:var(--fail)}
+sic-task-card .status[data-status="archived"]{background:#30363d;color:#8b949e}
+sic-task-card .meta{font-size:.8em;color:#8b949e;margin-top:.5em}
+#perf{position:fixed;top:1em;right:1em;background:#161b22;border:1px solid var(--border);border-radius:8px;padding:.8em;font-size:.75em}
+#perf .metric{margin:.3em 0}
+#perf .value{font-weight:700;color:var(--accent)}
+</style>
+</head>
+<body>
+<h1>SIC-JS v3.0 Task Dashboard</h1>
+<div id="perf">
+  <div class="metric">TTR: <span class="value" id="ttr">—</span></div>
+  <div class="metric">Tasks: <span class="value" id="count">0</span></div>
+  <div class="metric">Render: <span class="value" id="render-time">—</span></div>
+</div>
+<div class="grid" id="grid"></div>
+
+<script>
+// === Web Component: <sic-task-card> ===
+class SicTaskCard extends HTMLElement {
+  static get observedAttributes() { return ['task-id','title','status','deliverable','owner','priority','round']; }
+  
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host{display:block}
+        .id{font-weight:700;color:#58a6ff;font-size:.85em}
+        .title{font-size:1.1em;margin:.4em 0;color:#c9d1d9}
+        .status{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75em;font-weight:600}
+        .status[data-status="pending"]{background:#d2992233;color:#d29922}
+        .status[data-status="in_progress"]{background:#58a6ff33;color:#58a6ff}
+        .status[data-status="completed"]{background:#3fb95033;color:#3fb950}
+        .status[data-status="dismissed"]{background:#f8514933;color:#f85149}
+        .status[data-status="archived"]{background:#30363d;color:#8b949e}
+        .deliverable{font-size:.8em;color:#8b949e;margin-top:.4em;font-style:italic}
+        .meta{font-size:.75em;color:#6e7681;margin-top:.5em}
+      </style>
+      <div class="id"></div>
+      <div class="title"></div>
+      <span class="status"></span>
+      <div class="deliverable"></div>
+      <div class="meta"></div>
+    `;
+  }
+  
+  connectedCallback() { this._render(); }
+  attributeChangedCallback() { this._render(); }
+  
+  _render() {
+    const id = this.getAttribute('task-id') || '';
+    const title = this.getAttribute('title') || '';
+    const status = this.getAttribute('status') || 'pending';
+    const deliverable = this.getAttribute('deliverable') || '';
+    const owner = this.getAttribute('owner') || '—';
+    const priority = this.getAttribute('priority') || 'P2';
+    const round = this.getAttribute('round') || '—';
+    
+    this.shadowRoot.querySelector('.id').textContent = id;
+    this.shadowRoot.querySelector('.title').textContent = title;
+    const statusEl = this.shadowRoot.querySelector('.status');
+    statusEl.textContent = status;
+    statusEl.dataset.status = status;
+    this.shadowRoot.querySelector('.deliverable').textContent = deliverable;
+    this.shadowRoot.querySelector('.meta').textContent = `Owner: ${owner} | Priority: ${priority} | Round: ${round}`;
+  }
+}
+customElements.define('sic-task-card', SicTaskCard);
+
+// === Performance Measurement ===
+function renderTasks(records) {
+  const grid = document.getElementById('grid');
+  const t0 = performance.now();
+  
+  // Clear existing
+  grid.innerHTML = '';
+  
+  // Create fragment for batch DOM insertion
+  const fragment = document.createDocumentFragment();
+  
+  for (const record of records) {
+    const card = document.createElement('sic-task-card');
+    if (record.task) {
+      card.setAttribute('task-id', record.task.id || '');
+      card.setAttribute('title', record.task.title || '');
+      card.setAttribute('status', record.task.status || 'pending');
+      card.setAttribute('deliverable', record.task.deliverable || '');
+      card.setAttribute('owner', record.task.owner || '—');
+      card.setAttribute('priority', record.task.priority || 'P2');
+    }
+    card.setAttribute('round', record.round || '');
+    fragment.appendChild(card);
+  }
+  
+  grid.appendChild(fragment);
+  
+  const t1 = performance.now();
+  const ttr = t1 - t0;
+  
+  document.getElementById('ttr').textContent = ttr.toFixed(2) + 'ms';
+  document.getElementById('count').textContent = records.length;
+  document.getElementById('render-time').textContent = ttr.toFixed(2) + 'ms';
+  
+  return ttr;
+}
+
+// === Load Test Data ===
+async function loadAndRender() {
+  try {
+    const resp = await fetch('/data');
+    const records = await resp.json();
+    const ttr = renderTasks(records);
+    console.log(`[PERF] TTR=${ttr.toFixed(2)}ms for ${records.length} tasks`);
+    
+    // Report to benchmark endpoint
+    fetch('/report', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ ttr, count: records.length })
+    }).catch(() => {});
+  } catch (e) {
+    console.error('Load failed:', e);
+  }
+}
+
+// Auto-load on page ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadAndRender);
+} else {
+  loadAndRender();
+}
+</script>
+</body>
+</html>
